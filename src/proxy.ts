@@ -10,6 +10,7 @@ const ROOT_DOMAIN = (process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "localhost:3000")
   .toLowerCase();
 
 const PUBLIC_HOSTS = new Set([ROOT_DOMAIN, `www.${ROOT_DOMAIN}`]);
+const TENANT_OVERRIDE_COOKIE = "tenant_override";
 
 function extractSubdomain(host: string): string | null {
   const normalizedHost = host.toLowerCase();
@@ -20,15 +21,24 @@ function extractSubdomain(host: string): string | null {
     return normalizedHost.slice(0, -`.${ROOT_DOMAIN}`.length);
   }
 
-  // Preview deploys da Vercel (*.vercel.app) não têm subdomínio de tenant.
-  if (normalizedHost.endsWith(".vercel.app")) return null;
-
   return null;
 }
 
 export async function proxy(request: NextRequest) {
   const host = request.headers.get("host") ?? "";
-  const subdomain = extractSubdomain(host);
+  let subdomain = extractSubdomain(host);
+
+  // Provisório: enquanto não há um domínio próprio com wildcard DNS
+  // (ex.: testando no domínio padrão *.vercel.app), permite escolher o
+  // tenant por ?tenant=<subdominio> e mantém a escolha num cookie, para
+  // não precisar repetir o parâmetro a cada navegação. Remover quando a
+  // clínica tiver domínio próprio configurado com subdomínio curinga.
+  const queryTenant = request.nextUrl.searchParams.get("tenant");
+  const cookieTenant = request.cookies.get(TENANT_OVERRIDE_COOKIE)?.value;
+  const usingOverride = !subdomain && Boolean(queryTenant || cookieTenant);
+  if (!subdomain) {
+    subdomain = queryTenant ?? cookieTenant ?? null;
+  }
 
   if (!subdomain) {
     return NextResponse.next();
@@ -49,9 +59,19 @@ export async function proxy(request: NextRequest) {
   requestHeaders.set("x-tenant-id", tenant.id);
   requestHeaders.set("x-tenant-subdomain", tenant.subdomain);
 
-  return NextResponse.next({
+  const response = NextResponse.next({
     request: { headers: requestHeaders },
   });
+
+  if (usingOverride) {
+    response.cookies.set(TENANT_OVERRIDE_COOKIE, tenant.subdomain, {
+      httpOnly: true,
+      sameSite: "lax",
+      path: "/",
+    });
+  }
+
+  return response;
 }
 
 export const config = {
