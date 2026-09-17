@@ -10,13 +10,3 @@ export async function getTenantFromHeaders() {
 
   return { id: tenantId, subdomain };
 }
-
-export async function requireTenant() {
-  const tenant = await getTenantFromHeaders();
-  if (!tenant) {
-    throw new Error(
-      "Tenant não resolvido: rota acessada fora de um subdomínio válido."
-    );
-  }
-  return tenant;
-}

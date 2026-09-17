@@ -1,4 +1,4 @@
-import { requireTenant } from "@/lib/tenant";
+import { getTenantFromHeaders } from "@/lib/tenant";
 import {
   getActiveMenuForTenant,
   getCurrentPatientForBed,
@@ -21,7 +21,15 @@ export default async function PatientOrderPage({
   params: Promise<{ token: string }>;
 }) {
   const { token } = await params;
-  const tenant = await requireTenant();
+  const tenant = await getTenantFromHeaders();
+  if (!tenant) {
+    return (
+      <InfoScreen
+        title="Link inválido"
+        message="Este link não corresponde a nenhuma clínica. Fale com a equipe da copa."
+      />
+    );
+  }
 
   const bed = await resolveBedByToken(token, tenant.id);
   if (!bed) {

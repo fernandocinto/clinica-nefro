@@ -1,6 +1,6 @@
 "use server";
 
-import { requireTenant } from "@/lib/tenant";
+import { getTenantFromHeaders } from "@/lib/tenant";
 import {
   getActiveMenuForTenant,
   getCurrentPatientForBed,
@@ -17,7 +17,8 @@ export async function createPatientOrder(
   token: string,
   items: OrderItemInput[]
 ): Promise<OrderActionState> {
-  const tenant = await requireTenant();
+  const tenant = await getTenantFromHeaders();
+  if (!tenant) return { error: "Link inválido." };
 
   const bed = await resolveBedByToken(token, tenant.id);
   if (!bed) return { error: "Link inválido." };

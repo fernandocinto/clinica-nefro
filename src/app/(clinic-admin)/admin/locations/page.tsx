@@ -1,12 +1,13 @@
+import { requireStaffSession } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { requireTenant } from "@/lib/tenant";
 import { LocationsManager } from "./locations-manager";
 
 export default async function LocationsPage() {
-  const tenant = await requireTenant();
+  const session = await requireStaffSession();
   const supabase = await createClient();
 
-  const [{ data: locations }, { data: beds }] = await Promise.all([
+  const [{ data: tenant }, { data: locations }, { data: beds }] = await Promise.all([
+    supabase.from("tenants").select("subdomain").eq("id", session.tenantId).single(),
     supabase.from("locations").select("id, name").order("name"),
     supabase
       .from("beds")
@@ -20,7 +21,7 @@ export default async function LocationsPage() {
       <LocationsManager
         initialLocations={locations ?? []}
         initialBeds={beds ?? []}
-        subdomain={tenant.subdomain}
+        subdomain={tenant?.subdomain ?? ""}
       />
     </div>
   );
