@@ -46,8 +46,11 @@ export async function renameAllergen(
 export async function deleteAllergen(id: string): Promise<ActionState> {
   await requireStaffSession();
   const supabase = await createClient();
-  const { error } = await supabase.from("allergens").delete().eq("id", id);
+  const { data, error } = await supabase.from("allergens").delete().eq("id", id).select("id");
   if (error) return { error: "Não foi possível excluir: este alérgeno está em uso." };
+  if (!data || data.length === 0) {
+    return { error: "Não foi possível excluir: alérgeno não encontrado ou sem permissão." };
+  }
   revalidatePath("/admin/allergens");
   return {};
 }

@@ -230,6 +230,7 @@ export function MenuDetailManager({
     startTransition(async () => {
       const result = await deleteAvailability(rule.id, menu.id);
       if (result.error) toast.error(result.error);
+      else toast.success("Regra excluída.");
     });
   }
 
@@ -266,6 +267,7 @@ export function MenuDetailManager({
     startTransition(async () => {
       const result = await deleteGroup(group.id, menu.id);
       if (result.error) toast.error(result.error);
+      else toast.success("Grupo excluído.");
     });
   }
 

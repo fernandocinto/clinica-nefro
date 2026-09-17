@@ -85,13 +85,16 @@ export async function updatePatient(
 export async function deletePatient(id: string): Promise<ActionState> {
   await requireStaffSession();
   const supabase = await createClient();
-  const { error } = await supabase.from("patients").delete().eq("id", id);
+  const { data, error } = await supabase.from("patients").delete().eq("id", id).select("id");
 
   if (error) {
     return {
       error:
         "Não foi possível excluir: este paciente já tem pedidos ou ocupações registradas.",
     };
+  }
+  if (!data || data.length === 0) {
+    return { error: "Não foi possível excluir: paciente não encontrado ou sem permissão." };
   }
 
   revalidatePath("/admin/patients");

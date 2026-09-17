@@ -126,6 +126,7 @@ export function ProductsManager({
     startTransition(async () => {
       const result = await deleteProduct(product.id);
       if (result.error) toast.error(result.error);
+      else toast.success("Produto excluído.");
     });
   }
 

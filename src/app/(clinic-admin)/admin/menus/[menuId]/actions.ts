@@ -50,8 +50,11 @@ export async function createAvailability(
 export async function deleteAvailability(id: string, menuId: string): Promise<ActionState> {
   await requireStaffSession();
   const supabase = await createClient();
-  const { error } = await supabase.from("menu_availability").delete().eq("id", id);
+  const { data, error } = await supabase.from("menu_availability").delete().eq("id", id).select("id");
   if (error) return { error: "Não foi possível excluir a regra." };
+  if (!data || data.length === 0) {
+    return { error: "Não foi possível excluir: regra não encontrada ou sem permissão." };
+  }
   revalidatePath(`/admin/menus/${menuId}`);
   return {};
 }
@@ -87,8 +90,11 @@ export async function renameGroup(id: string, menuId: string, name: string): Pro
 export async function deleteGroup(id: string, menuId: string): Promise<ActionState> {
   await requireStaffSession();
   const supabase = await createClient();
-  const { error } = await supabase.from("menu_groups").delete().eq("id", id);
+  const { data, error } = await supabase.from("menu_groups").delete().eq("id", id).select("id");
   if (error) return { error: "Não foi possível excluir o grupo." };
+  if (!data || data.length === 0) {
+    return { error: "Não foi possível excluir: grupo não encontrado ou sem permissão." };
+  }
   revalidatePath(`/admin/menus/${menuId}`);
   return {};
 }

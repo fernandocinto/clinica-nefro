@@ -41,6 +41,7 @@ export function MenusManager({ initialMenus }: { initialMenus: Menu[] }) {
     startTransition(async () => {
       const result = await deleteMenu(menu.id);
       if (result.error) toast.error(result.error);
+      else toast.success("Cardápio excluído.");
     });
   }
 

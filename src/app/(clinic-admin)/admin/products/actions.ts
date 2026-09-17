@@ -72,9 +72,12 @@ export async function updateProduct(
 export async function deleteProduct(id: string): Promise<ActionState> {
   await requireStaffSession();
   const supabase = await createClient();
-  const { error } = await supabase.from("products").delete().eq("id", id);
+  const { data, error } = await supabase.from("products").delete().eq("id", id).select("id");
   if (error) {
     return { error: "Não foi possível excluir: este produto está em uso em algum cardápio ou pedido." };
+  }
+  if (!data || data.length === 0) {
+    return { error: "Não foi possível excluir: produto não encontrado ou sem permissão." };
   }
   revalidatePath("/admin/products");
   return {};

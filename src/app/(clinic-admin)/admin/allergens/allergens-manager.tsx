@@ -56,6 +56,7 @@ export function AllergensManager({ initialAllergens }: { initialAllergens: Aller
     startTransition(async () => {
       const result = await deleteAllergen(allergen.id);
       if (result.error) toast.error(result.error);
+      else toast.success("Alérgeno excluído.");
     });
   }
 

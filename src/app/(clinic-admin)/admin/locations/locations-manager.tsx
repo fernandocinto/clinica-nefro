@@ -150,6 +150,7 @@ export function LocationsManager({
     startTransition(async () => {
       const result = await deleteLocation(location.id);
       if (result.error) toast.error(result.error);
+      else toast.success("Local excluído.");
     });
   }
 
@@ -158,6 +159,7 @@ export function LocationsManager({
     startTransition(async () => {
       const result = await deleteBed(bed.id);
       if (result.error) toast.error(result.error);
+      else toast.success("Leito excluído.");
     });
   }
 

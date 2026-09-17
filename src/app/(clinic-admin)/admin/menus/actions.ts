@@ -34,8 +34,11 @@ export async function toggleMenuActive(id: string, active: boolean): Promise<Act
 export async function deleteMenu(id: string): Promise<ActionState> {
   await requireStaffSession();
   const supabase = await createClient();
-  const { error } = await supabase.from("menus").delete().eq("id", id);
+  const { data, error } = await supabase.from("menus").delete().eq("id", id).select("id");
   if (error) return { error: "Não foi possível excluir o cardápio." };
+  if (!data || data.length === 0) {
+    return { error: "Não foi possível excluir: cardápio não encontrado ou sem permissão." };
+  }
   revalidatePath("/admin/menus");
   return {};
 }

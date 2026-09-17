@@ -28,9 +28,12 @@ export async function createLocation(
 export async function deleteLocation(id: string): Promise<ActionState> {
   await requireStaffSession();
   const supabase = await createClient();
-  const { error } = await supabase.from("locations").delete().eq("id", id);
+  const { data, error } = await supabase.from("locations").delete().eq("id", id).select("id");
   if (error) {
     return { error: "Não foi possível excluir: este local ainda tem leitos cadastrados." };
+  }
+  if (!data || data.length === 0) {
+    return { error: "Não foi possível excluir: local não encontrado ou sem permissão." };
   }
   revalidatePath("/admin/locations");
   return {};
@@ -81,9 +84,12 @@ export async function updateBed(
 export async function deleteBed(id: string): Promise<ActionState> {
   await requireStaffSession();
   const supabase = await createClient();
-  const { error } = await supabase.from("beds").delete().eq("id", id);
+  const { data, error } = await supabase.from("beds").delete().eq("id", id).select("id");
   if (error) {
     return { error: "Não foi possível excluir: este leito já tem pedidos ou ocupações registradas." };
+  }
+  if (!data || data.length === 0) {
+    return { error: "Não foi possível excluir: leito não encontrado ou sem permissão." };
   }
   revalidatePath("/admin/locations");
   return {};
